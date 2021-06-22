@@ -1,38 +1,46 @@
 package me.lvxuan.amazonconnectdemo.chat
 
 import android.util.Log
-import com.google.gson.JsonParser
+import com.google.gson.Gson
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
-import java.lang.Exception
 import java.net.URI
 
 /**
  * @author LvXuan
  * Created by LvXuan on 2021/6/11 17:55.
  */
-class WebSocketManager(wsUrl:String, val onReceivedMessage: (Message) -> Unit = {}) :
+class WebSocketManager(wsUrl: String, val onReceivedMessage: (Message) -> Unit = {}) :
     WebSocketClient(URI.create(wsUrl)) {
 
+    private val gson = Gson()
     private val TAG = "WebSocketManager"
 
     override fun onOpen(handshakedata: ServerHandshake?) {
-        Log.i(TAG, "onOpen: ")
+        send("""{"topic": "aws/subscribe", "content": {"topics": ["aws/chat"]}})""")
     }
 
     override fun onMessage(message: String?) {
         Log.i(TAG, "onMessage: $message")
-//     todo    onReceivedMessage(message)
 
-        val jsonObject = JsonParser.parseString(message).asJsonObject
-        val type = jsonObject.get("Type").asString
-        if (type == "MESSAGE") {
-            val participantRole = jsonObject.get("ParticipantRole").asString
-            val text = jsonObject.get("Content").asString
-            val msg = Message(participantRole, text)
-            onReceivedMessage(msg)
-        } else if (type == "application/vnd.amazonaws.connect.event.chat.ended") {
-            onReceivedMessage(Message("System Message", "The chat has ended."))
+        if (message.isNullOrEmpty()) return
+        val msg = MessageHandle.handle(gson, message)
+        when {
+
+            msg.type == "MESSAGE" -> {
+                onReceivedMessage(msg)
+            }
+
+            msg.contentType == "application/vnd.amazonaws.connect.event.chat.ended" -> {
+                msg.content = "The chat has ended."
+                msg.displayName = "System message"
+                onReceivedMessage(msg)
+            }
+
+            msg.contentType == "application/vnd.amazonaws.connect.event.participant.joined" -> {
+                msg.content = "The customer service has joined."
+                msg.displayName = "System message"
+            }
         }
     }
 

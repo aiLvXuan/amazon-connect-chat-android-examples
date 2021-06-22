@@ -1,6 +1,8 @@
 package me.lvxuan.amazonconnectdemo.chat
 
 import androidx.annotation.WorkerThread
+import com.amazonaws.AmazonServiceException
+import com.amazonaws.regions.Region
 import com.amazonaws.services.connect.AmazonConnect
 import com.amazonaws.services.connect.AmazonConnectClient
 import com.amazonaws.services.connect.model.ParticipantDetails
@@ -17,9 +19,27 @@ import com.amazonaws.services.connectparticipant.model.SendMessageRequest
  * Created by LvXuan on 2021/6/15 11:47.
  */
 class ChatWrapper {
+    private val TAG = "ChatWrapper"
+
     companion object {
+
         const val INSTANCE_ID = "INSTANCE_ID"   // TODO - fill in
-        const val CONTACT_FLOW_ID = "CONNECT_FLOW_ID"  // TODO - fill in
+
+        /**
+         * CONTACT_FLOW_ID
+         * see: [StartChatContactRequest.withContactFlowId]
+         * doc: https://docs.aws.amazon.com/connect/latest/adminguide/tutorial1-create-contact-flow.html
+         */
+        const val CONTACT_FLOW_ID = "CONTACT_FLOW_ID"  // TODO - fill in
+
+        /**
+         * ACCESS_KEY, SECRET_KEY
+         * home: https://console.aws.amazon.com/iam/
+         * Access management --> Users --> Add user
+         * or  Access management --> Users --> "user" --> Security credentials -->  Create access key
+         */
+        const val ACCESS_KEY = "ACCESS_KEY"   // TODO - fill in
+        const val SECRET_KEY = "SECRET_KEY"    // TODO - fill in
     }
 
     val connectServiceClient: AmazonConnect
@@ -29,20 +49,20 @@ class ChatWrapper {
     var contactId: String? = null
     var websocketUrl: String? = null
 
-    val accessKey = "ACCESS_KEY_ID"   // TODO - fill in  (??? fetching from the server)
-    val secretKey = "SECRET_ACCESS_KEY_ID"    // TODO - fill in  (??? fetching from the server)
-
-    var isStart = false
 
     init {
-        val credentials = AWSStaticCredentialsProvider(accessKey, secretKey)
+        val credentials = AWSStaticCredentialsProvider(ACCESS_KEY, SECRET_KEY)
 
         connectServiceClient = AmazonConnectClient(credentials)
         connectChatClient = AmazonConnectParticipantClient()
+
 //        https://docs.aws.amazon.com/zh_cn/general/latest/gr/connect_region.html
-//        connectChatClient.setRegion(Region.getRegion("todo1"))
+        connectServiceClient.setRegion(Region.getRegion("ap-southeast-1"))
+        connectChatClient.setRegion(Region.getRegion("ap-southeast-1"))
+
     }
 
+    @Throws(AmazonServiceException::class)
     @WorkerThread
     fun startChatContact(name: String) {
         val startChatContactRequest = StartChatContactRequest()
@@ -55,10 +75,10 @@ class ChatWrapper {
 
         this.participantToken = result.participantToken
         this.contactId = result.contactId
-        isStart = true
 
     }
 
+    @Throws(AmazonServiceException::class)
     @WorkerThread
     fun createParticipantConnection() {
         val createParticipantConnectionRequest = CreateParticipantConnectionRequest()
@@ -71,16 +91,18 @@ class ChatWrapper {
         this.websocketUrl = result.websocket.url
     }
 
+    @Throws(AmazonServiceException::class)
     @WorkerThread
     fun sendChatMessage(message: String) {
         val sendMessageRequest = SendMessageRequest()
-            .withClientToken(connectionToken)
+            .withConnectionToken(connectionToken)
             .withContent(message)
             .withContentType("text/plain")
 
         connectChatClient.sendMessage(sendMessageRequest)
     }
 
+    @Throws(AmazonServiceException::class)
     @WorkerThread
     fun sendTypingEvent() {
         val sendEventRequest = SendEventRequest()
@@ -91,6 +113,7 @@ class ChatWrapper {
 
     }
 
+    @Throws(AmazonServiceException::class)
     @WorkerThread
     fun endChat() {
         val stopChatRequest = StopContactRequest()
@@ -98,6 +121,5 @@ class ChatWrapper {
             .withContactId(this.contactId)
 
         connectServiceClient.stopContact(stopChatRequest)
-        isStart = false
     }
 }

@@ -26,15 +26,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <Button
-        android:id="@+id/btn_send_message"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:text="Send Message"
-        android:textAllCaps="false"
-        app:layout_constraintBaseline_toBaselineOf="@id/btn_start_chat"
-        app:layout_constraintStart_toEndOf="@id/btn_start_chat" />
 
     <Button
         android:id="@+id/btn_end_chat"
@@ -43,6 +34,37 @@
         android:layout_marginStart="10dp"
         android:text="End Chat"
         android:textAllCaps="false"
-        app:layout_constraintBaseline_toBaselineOf="@id/btn_send_message"
-        app:layout_constraintStart_toEndOf="@id/btn_send_message" />
+        app:layout_constraintBaseline_toBaselineOf="@id/btn_start_chat"
+        app:layout_constraintStart_toEndOf="@id/btn_start_chat" />
+
+    <EditText
+        android:id="@+id/et_msg"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="20dp"
+        android:hint="input message here"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btn_start_chat" />
+
+    <Button
+        android:id="@+id/btn_send_message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:text="Send Message"
+        android:textAllCaps="false"
+        app:layout_constraintStart_toStartOf="@id/btn_start_chat"
+        app:layout_constraintTop_toBottomOf="@id/et_msg" />
+
+    <TextView
+        android:id="@+id/tv_msg"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btn_send_message" />
 </androidx.constraintlayout.widget.ConstraintLayout>
